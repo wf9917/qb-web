@@ -47,7 +47,8 @@
   /* ---------- tabs ---------- */
   .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
   .tab{padding:6px 13px;border-radius:99px;border:1px solid var(--line);background:#fff;
-    font-size:13px;cursor:pointer;color:var(--muted);transition:.15s;user-select:none}
+    font-size:13px;cursor:pointer;color:var(--muted);transition:.15s;user-select:none;
+    white-space:nowrap;flex:0 0 auto}
   .tab:hover{border-color:#c6cfdb;color:var(--ink)}
   .tab.on{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
 
@@ -173,6 +174,18 @@
     button{padding:11px 16px;font-size:15px}
     .btn-ghost{padding:9px 12px}
     .tab{padding:9px 15px;font-size:14px}
+    /* 手机：标签栏改成单行横向滚动，不再换行占两行 */
+    .tabs{
+      flex-wrap:nowrap !important;
+      overflow-x:auto;
+      overflow-y:hidden;
+      -webkit-overflow-scrolling:touch;
+      scrollbar-width:none;
+      margin:0 -12px 12px -12px;
+      padding:2px 12px 8px 12px;
+    }
+    .tabs::-webkit-scrollbar{display:none}
+    .tab{flex:0 0 auto;white-space:nowrap}
     .actions{gap:10px}
     #btnSubmit,#btnUnsure{flex:1 1 auto;min-height:46px}
     .hrow{gap:8px}
@@ -826,7 +839,17 @@ function showToast(msg, type, duration){
 
 /* ---------- helpers ---------- */
 function topicShort(t){
-  return t.replace(/^[一二三四五六七八九十]+、/,'').replace(/（[^）]*）/,'').replace(/《|》/g,'');
+  let s = t.replace(/^[一二三四五六七八九十]+、/,'').replace(/（[^）]*）/,'').replace(/《|》/g,'');
+  // 标签栏里用简称，避免横向滚动太长
+  s = s.replace(/^中华人民共和国/, '').replace(/^中共中央\s*国务院关于/, '');
+  const map = {
+    '城市居民委员会组织法': '居委会组织法',
+    '社会工作者职业资格考试核心知识': '社工核心知识',
+    '基层矛盾纠纷化解实务': '矛盾化解实务',
+    '加强新时代社会工作的意见': '新时代社工意见',
+    '树立和践行正确政绩观': '正确政绩观'
+  };
+  return map[s] || s;
 }
 function pool(){
   const tab = state.tab;
