@@ -44,6 +44,90 @@
   .btn-ghost{background:transparent;border-color:transparent;color:var(--muted);padding:6px 10px}
   .btn-ghost:hover{background:#eaeef4;color:var(--ink)}
 
+  /* ---------- 模式紧凑条（手机默认显示） ---------- */
+  #modeBar{display:none}
+  #modeBar button{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:10px;
+    border:1px solid var(--line);background:#fff;font-size:13.5px;color:var(--ink);
+    cursor:pointer;font-family:inherit;line-height:1}
+  #modePill{flex:1 1 auto;justify-content:flex-start}
+  #modePillText{font-weight:700}
+  #modePillCnt{color:var(--muted);font-size:12px}
+  #modePillArrow{margin-left:auto;color:var(--muted);font-size:14px;
+    transition:transform .18s;display:inline-block}
+  #modeBar.open #modePillArrow{transform:rotate(180deg)}
+  #modePillReview{flex:0 0 auto;color:#4f46e5;border-color:#c7d2fe;background:#eef2ff;font-weight:600}
+  #modePillReview span{margin-left:2px;font-size:12px;opacity:.75}
+
+  /* ---------- 顶栏图标按钮 ---------- */
+  .iconbtn{background:transparent;border:none;font-size:19px;line-height:1;color:#475569;
+    padding:4px 8px;cursor:pointer;border-radius:8px}
+  .iconbtn:hover{background:#eaeef4}
+  #btnDrawer{flex:0 0 auto;font-size:17px;padding:8px 11px}
+
+  /* ---------- 遮罩 ---------- */
+  #drawerMask,#settingsMask{position:fixed;inset:0;background:rgba(15,23,42,.42);
+    z-index:200;opacity:0;pointer-events:none;transition:opacity .2s}
+  body.drawerOpen #drawerMask,body.settingsOpen #settingsMask{opacity:1;pointer-events:auto}
+
+  /* ---------- 左侧抽屉 ---------- */
+  #drawer{position:fixed;top:0;left:0;bottom:0;width:min(84vw,320px);background:#fff;
+    z-index:201;transform:translateX(-102%);transition:transform .24s cubic-bezier(.22,.61,.36,1);
+    box-shadow:2px 0 22px rgba(15,23,42,.14);overflow-y:auto;
+    padding:16px 14px 28px;display:flex;flex-direction:column;
+    border-right:1px solid var(--line)}
+  body.drawerOpen #drawer{transform:translateX(0)}
+  .dr-head{display:flex;align-items:center;margin-bottom:16px;padding:0 2px}
+  .dr-head b{font-size:16px;font-weight:700}
+  .sp-close{margin-left:auto;background:transparent;border:none;font-size:17px;color:var(--muted);
+    cursor:pointer;padding:4px 8px;border-radius:7px;line-height:1}
+  .sp-close:hover{background:#eef1f5}
+  .dr-sec{font-size:11.5px;font-weight:700;color:#94a3b8;letter-spacing:.5px;
+    margin:16px 2px 8px;text-transform:none}
+  .dr-sec:first-of-type{margin-top:0}
+  .dr-modes{display:flex;flex-direction:column;gap:7px}
+  .dr-mode{display:flex;align-items:center;justify-content:space-between;
+    padding:11px 13px;border-radius:10px;border:1px solid var(--line);background:#fff;
+    cursor:pointer;font-family:inherit;text-align:left;line-height:1.2}
+  .dr-mode b{font-size:14.5px;font-weight:600;color:var(--ink)}
+  .dr-mode small{font-size:12px;color:var(--muted)}
+  .dr-mode:hover{border-color:#c6cfdb}
+  .dr-mode.on{background:var(--brand);border-color:var(--brand)}
+  .dr-mode.on b,.dr-mode.on small{color:#fff}
+  .dr-tabs{display:flex;flex-wrap:wrap;gap:6px}
+  .dr-tabs .tab{padding:6px 12px;font-size:13px}
+  .dr-opts{display:flex;flex-direction:column;gap:9px;margin-bottom:12px}
+  .dr-chk{display:flex !important;flex-direction:row !important;align-items:center;
+    gap:9px;font-size:13.5px;color:var(--ink);cursor:pointer;
+    padding:0 !important;border:none !important;background:transparent !important;
+    width:auto !important;min-height:0 !important;line-height:1.4 !important}
+  .dr-chk input{width:17px !important;height:17px !important;flex:0 0 17px;cursor:pointer;
+    margin:0 !important;padding:0 !important;accent-color:var(--brand)}
+  .dr-chk span{display:inline !important;font-size:13.5px !important;font-weight:400 !important}
+  .dr-mini{align-self:flex-start;padding:5px 11px;font-size:12px;border-radius:8px;
+    border:1px solid var(--line);background:#fff;color:var(--muted);cursor:pointer;font-family:inherit}
+  .dr-shuffle{width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);
+    background:#fff;color:var(--ink);font-size:13.5px;cursor:pointer;font-family:inherit;font-weight:600}
+
+  /* ---------- 设置面板 ---------- */
+  #settingsPanel{position:fixed;top:50%;left:50%;transform:translate(-50%,-46%) scale(.97);
+    width:min(92vw,380px);background:#fff;border-radius:16px;z-index:201;
+    box-shadow:0 20px 60px rgba(15,23,42,.24);opacity:0;pointer-events:none;
+    transition:opacity .18s,transform .18s;padding:16px 14px 12px}
+  body.settingsOpen #settingsPanel{opacity:1;pointer-events:auto;
+    transform:translate(-50%,-50%) scale(1)}
+  .sp-head{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:0 2px}
+  .sp-head b{font-size:16px}
+  .sp-status{font-size:11.5px;color:var(--muted);margin-left:auto}
+  .sp-item{display:flex;align-items:center;gap:11px;width:100%;padding:12px 11px;
+    border-radius:10px;border:none;background:#fff;cursor:pointer;font-family:inherit;
+    text-align:left;line-height:1.2;color:var(--ink)}
+  .sp-item:hover{background:#f4f6f9}
+  .sp-item i{font-style:normal;font-size:16px;width:22px;text-align:center;flex:0 0 22px}
+  .sp-item span{font-size:14.5px;font-weight:600}
+  .sp-item small{margin-left:auto;font-size:11.5px;color:var(--muted)}
+  .sp-item.danger span{color:#dc2626}
+  .sp-foot{margin-top:10px;text-align:center;font-size:11px;color:#b6c0cd}
+
   /* ---------- tabs ---------- */
   .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
   .tab{padding:6px 13px;border-radius:99px;border:1px solid var(--line);background:#fff;
@@ -225,18 +309,14 @@
     .hrow .btn-ghost{padding:6px 7px !important;font-size:12px !important}
     #saveStatus{display:none}
     header{padding:9px 10px;margin:0 -12px 12px}
+    /* 手机：把垂直空间尽量留给题目 */
+    .qhead{margin-bottom:10px}
     /* 防止长内容撑破 */
     .stem,.qhead,.hint,.opt,.card{max-width:100%;overflow-wrap:anywhere;word-break:break-word}
-    .mode-btn{padding:10px 4px;min-height:54px}
-    .mode-btn b{font-size:12.5px;letter-spacing:-.3px}
-    .mode-btn small{font-size:10.5px}
-    /* 手机上三栏太挤：选择题 / 填空题 一行，复习 单独一行 */
-    #modeSwitch{display:grid !important;grid-template-columns:1fr 1fr;gap:7px}
-    #modeFill{grid-column:2}
-    #modeReview{grid-column:1 / -1;flex-direction:row !important;
-      justify-content:center;gap:10px;align-items:center;min-height:44px;padding:9px 12px}
-    #modeReview b{font-size:14px}
-    #modeReview small{font-size:11.5px}
+    /* 顶栏：抽屉按钮 + 当前模式 + 复习 */
+    #modeBar{display:flex;gap:7px;margin-bottom:10px}
+    /* 手机上的分类放在抽屉里，页面上不再显示 */
+    #tabs{display:none}
     .card{padding:17px 15px 15px}
     .stem{font-size:16.5px;line-height:1.75}
     .vb{flex:1 1 100%}
@@ -277,34 +357,77 @@
 
   <header>
     <div class="hrow">
-      <div class="title">社工大赛题库练习<span id="hdrSub">400 题</span><span id="hdrVer" style="font-size:10.5px;color:#94a3b8;font-weight:400;margin-left:6px">v2.4</span></div>
+      <div class="title">社工大赛题库练习<span id="hdrSub">400 题</span><span id="hdrVer" style="font-size:10.5px;color:#94a3b8;font-weight:400;margin-left:6px">v2.6</span></div>
       <div class="spacer"></div>
-      <span class="prog" id="saveStatus" style="font-size:12px"></span>
       <div class="prog" id="hdrProg">0 / 400</div>
-      <button class="btn-ghost" id="btnGhSync" title="设置 GitHub 同步">☁</button>
-      <button class="btn-ghost" id="btnBindFile" title="选一个文件，之后自动保存到这个文件">绑定保存文件</button>
-      <button class="btn-ghost" id="btnExportProg" title="把进度存成文件，换电脑也能接着做">导出</button>
-      <button class="btn-ghost" id="btnImportProg" title="从文件恢复进度">导入</button>
-      <button class="btn-ghost" id="btnReset" title="清除所有作答记录">重置</button>
+      <button class="iconbtn" id="btnSettings" title="设置" aria-label="设置">⚙</button>
+      <button class="btn-ghost" id="btnGhSync" title="设置 GitHub 同步" style="display:none">☁</button>
+      <button class="btn-ghost" id="btnBindFile" title="选一个文件，之后自动保存到这个文件" style="display:none">绑定保存文件</button>
+      <button class="btn-ghost" id="btnExportProg" title="把进度存成文件，换电脑也能接着做" style="display:none">导出</button>
+      <button class="btn-ghost" id="btnImportProg" title="从文件恢复进度" style="display:none">导入</button>
+      <button class="btn-ghost" id="btnReset" title="清除所有作答记录" style="display:none">重置</button>
       <input type="file" id="fileImport" accept=".json" style="display:none">
     </div>
     <div class="barbg"><div class="barfill" id="hdrBar"></div></div>
   </header>
 
-  <!-- ============ 模式入口 ============ -->
-  <div id="modeSwitch" style="display:flex;gap:10px;margin-bottom:16px">
-    <button id="modeChoice" class="mode-btn on">
-      <b>选择题练习</b>
-      <small id="modeChoiceCnt">0 / 400</small>
+  <!-- 设置菜单（点右上角 ⚙ 弹出） -->
+  <div id="settingsMask"></div>
+  <div id="settingsPanel" role="dialog" aria-label="设置">
+    <div class="sp-head">
+      <b>设置</b>
+      <span class="sp-status" id="saveStatus"></span>
+      <button class="sp-close" id="btnSettingsClose" aria-label="关闭">✕</button>
+    </div>
+    <button class="sp-item" id="spGhSync"><i>☁</i><span>云端同步</span><small id="spGhState">未设置</small></button>
+    <button class="sp-item" id="spExport"><i>⤓</i><span>导出进度</span><small>存成文件</small></button>
+    <button class="sp-item" id="spImport"><i>⤒</i><span>导入进度</span><small>从文件恢复</small></button>
+    <button class="sp-item" id="spBindFile"><i>📎</i><span>绑定保存文件</span><small>电脑端</small></button>
+    <button class="sp-item danger" id="spReset"><i>↺</i><span>重置进度</span><small>清空当前模式</small></button>
+    <div class="sp-foot">社工大赛题库练习 <b id="spVer">v2.6</b></div>
+  </div>
+
+  <!-- ============ 左侧抽屉：模式 + 分类 ============ -->
+  <div id="drawerMask"></div>
+  <div id="drawer" role="dialog" aria-label="模式与分类">
+    <div class="dr-head">
+      <b>练习设置</b>
+      <button class="sp-close" id="btnDrawerClose" aria-label="关闭">✕</button>
+    </div>
+
+    <div class="dr-sec">练习模式</div>
+    <div class="dr-modes">
+      <button id="modeChoice" class="dr-mode on">
+        <b>选择题</b><small id="modeChoiceCnt">0 / 400</small>
+      </button>
+      <button id="modeFill" class="dr-mode">
+        <b>填空题</b><small id="modeFillCnt">0 / 400</small>
+      </button>
+      <button id="modeReview" class="dr-mode">
+        <b>复习</b><small id="modeReviewCnt">0 张</small>
+      </button>
+    </div>
+
+    <div class="dr-sec">题目分类</div>
+    <div id="drawerTabs" class="dr-tabs"></div>
+
+    <div class="dr-sec">题目选项</div>
+    <div class="dr-opts">
+      <label class="dr-chk"><input type="checkbox" id="autoNext" checked><span>答完自动跳下一题</span></label>
+      <label class="dr-chk" id="optShuffleWrap"><input type="checkbox" id="shuffleOpts" checked><span>打乱选项顺序</span></label>
+      <button class="dr-mini" id="btnReshuffle">重新打乱选项</button>
+    </div>
+    <button class="dr-shuffle" id="btnShuffleQ">打乱题目顺序</button>
+  </div>
+
+  <!-- 顶栏：左抽屉按钮 + 当前状态 + 复习快捷入口 -->
+  <div id="modeBar">
+    <button id="btnDrawer" type="button" aria-label="打开练习设置">☰</button>
+    <button id="modePill" type="button">
+      <span id="modePillText">选择题</span>
+      <span id="modePillCnt">0/400</span>
     </button>
-    <button id="modeFill" class="mode-btn">
-      <b>填空题练习</b>
-      <small id="modeFillCnt">0 / 400</small>
-    </button>
-    <button id="modeReview" class="mode-btn">
-      <b>复习</b>
-      <small id="modeReviewCnt">0 张</small>
-    </button>
+    <button id="modePillReview" type="button">复习<span id="modePillReviewCnt">0</span></button>
   </div>
 
   <!-- ============ 做题视图 ============ -->
@@ -317,8 +440,6 @@
       <span id="missTopLabel">专练不会的题</span>
       <span style="float:right;opacity:.85;font-weight:400;font-size:13px">点这里 →</span>
     </button>
-
-    <div class="tabs" id="tabs"></div>
 
     <div class="card" id="qcard">
       <div class="qhead">
@@ -333,9 +454,6 @@
       <div id="fillArea" style="display:none">
         <div id="fillInputs" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px"></div>
         <div style="font-size:12.5px;color:var(--muted);margin-bottom:4px" id="fillNote"></div>
-        <div style="margin-top:10px">
-          <button id="btnShuffleQ" style="padding:5px 12px;font-size:12.5px">打乱题目顺序</button>
-        </div>
       </div>
 
       <div class="opts" id="qOpts"></div>
@@ -362,20 +480,6 @@
       <div class="actions" id="actNext" style="display:none">
         <div class="grow"></div>
         <button class="btn-primary" id="btnNext">下一题 →</button>
-      </div>
-
-      <div style="margin-top:12px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted)">
-        <label style="display:flex;align-items:center;gap:7px;cursor:pointer">
-          <input type="checkbox" id="autoNext" style="width:15px;height:15px;cursor:pointer">
-          <span>答完自动跳下一题</span>
-        </label>
-        <span id="optShuffleWrap" style="display:contents">
-          <label style="display:flex;align-items:center;gap:7px;cursor:pointer">
-            <input type="checkbox" id="shuffleOpts" style="width:15px;height:15px;cursor:pointer">
-            <span>打乱选项顺序</span>
-          </label>
-          <button id="btnReshuffle" style="padding:3px 10px;font-size:12px">重新打乱</button>
-        </span>
       </div>
     </div>
 
@@ -552,8 +656,13 @@ function normAnswer(s){
   t = t.replace(/\u3000/g, ' ');
   // 去掉所有空白
   t = t.replace(/\s+/g, '');
-  // 去掉常见标点
-  t = t.replace(/[，,。.、；;：:！!？?"'"'（）()【】\[\]《》<>「」『』—\-_·]/g, '');
+  // 区间符号统一：5~9 / 5到9 / 5至9 / 5—9 都等同于 5-9
+  // （必须在去标点之前做，否则 - 和 — 会被删掉，只剩 59）
+  t = t.replace(/[~～∼〜]/g, '-');
+  t = t.replace(/(\d|[一二三四五六七八九十])\s*[到至]\s*(?=(\d|[一二三四五六七八九十]))/g, '$1-');
+  t = t.replace(/[—–―−─]/g, '-');
+  // 去掉常见标点（保留区间符 -）
+  t = t.replace(/[，,。.、；;：:！!？?"'"'（）()【】\[\]《》<>「」『』_·]/g, '');
   // 数字与汉字互通
   const cn = {'零':'0','一':'1','二':'2','三':'3','四':'4','五':'5','六':'6','七':'7','八':'8','九':'9','十':'10'};
   t = t.replace(/[零一二三四五六七八九十]/g, c => cn[c] || c);
@@ -776,6 +885,7 @@ function markFillVerdict(q, v, vals){
   save();
   revealed = true;
   renderQuestion();
+  if(typeof renderModeButtons === 'function') renderModeButtons();
 }function loadShuffleMap(){
   try{
     const raw = localStorage.getItem(LS_SHUFFLE);
@@ -1142,15 +1252,10 @@ function save(){
 function renderAll(){
   renderHeader(); renderTabs(); renderQuestion(); renderSaveStatus();
   if(typeof renderModeButtons === 'function') renderModeButtons();
-  const be = document.getElementById('btnExportProg');
-  const bi = document.getElementById('btnImportProg');
-  const bb = document.getElementById('btnBindFile');
-  // 绑定文件后，导出/导入就不需要了
-  const hidden = diskMode || !!fileHandle;
-  if(be) be.style.display = hidden ? 'none' : '';
-  if(bi) bi.style.display = hidden ? 'none' : '';
-  // 手机浏览器不支持文件绑定，直接隐藏这个按钮
-  if(bb) bb.style.display = (!fsSupported() || diskMode || !!fileHandle) ? 'none' : '';
+  // 注意：导出/导入/绑定/重置这几个按钮已经全部移进「⚙ 设置」菜单，
+  // 它们只作为隐藏的触发器存在，这里绝不能再改动它们的显示状态，
+  // 否则又会在顶栏冒出来，和设置里的项目重复。
+  if(typeof renderSettingsState === 'function') renderSettingsState();
 }
 
 function renderSaveStatus(){
@@ -1352,7 +1457,7 @@ function renderHeader(){
 
 /* ---------- tabs ---------- */
 function renderTabs(){
-  const el = document.getElementById('tabs');
+  const el = document.getElementById('drawerTabs');
   const missN = missList().length;
   const tabs = [
     {k:'all',    label:'全部 '+QUESTIONS.length},
@@ -1362,14 +1467,27 @@ function renderTabs(){
   ];
   for(const t of topics()) tabs.push({k:t, label:topicShort(t)});
 
-  el.innerHTML = '';
-  for(const t of tabs){
-    const b = document.createElement('div');
-    b.className = 'tab' + (state.tab===t.k ? ' on' : '');
-    b.textContent = t.label;
-    b.onclick = ()=>{ state.tab = t.k; renderTabs(); renderQuestion(); };
-    el.appendChild(b);
+  if(el){
+    el.innerHTML = '';
+    for(const t of tabs){
+      const b = document.createElement('div');
+      b.className = 'tab' + (state.tab===t.k ? ' on' : '');
+      b.textContent = t.label;
+      b.onclick = ()=>{
+        state.tab = t.k;
+        renderTabs();
+        renderQuestion();
+        // 选完分类自动收起抽屉，把空间留给题目
+        toggleDrawer(false);
+      };
+      el.appendChild(b);
+    }
   }
+
+  // 顶栏显示的当前分类
+  const cur = tabs.find(t => t.k === state.tab);
+  const lbl = document.getElementById('modePillCnt');
+  if(lbl && cur && !reviewMode) lbl.dataset.tab = cur.label;
 }
 
 /* ---------- question render ---------- */
@@ -1689,6 +1807,8 @@ function markVerdict(q, v, sel){
     else if(chosen.includes(letter)) div.classList.add('wrong');
   });
   renderQuestion();
+  // 顶部紧凑条上的「复习 N」要立刻跟着变，不能等云端同步回来（会慢半拍）
+  if(typeof renderModeButtons === 'function') renderModeButtons();
 }
 
 // 自动跳下一题（停顿片刻，让你看清对错/答案）
@@ -2002,13 +2122,22 @@ function switchMode(toFill){
   renderTabs();
   renderQuestion();
 
-  // 云端同步放到后台，完成后刷新界面（不阻塞、不覆盖本地）
+  // 云端同步放到后台。
+  // 关键：只有本地这个模式一条记录都没有时，才允许从云端拉取。
+  // 否则云端存着的旧记录会在每次切模式时被恢复回来，
+  // 让人以为"我还没做，却显示一堆不会的"。
+  const localN = Object.keys(state.answers || {}).length;
   if(typeof ghConfigured === 'function' && ghConfigured()){
-    ghSync(true).then(() => {
-      renderModeButtons();
-      renderTabs();
-      renderQuestion();
-    }).catch(() => {});
+    if(localN === 0){
+      ghSync(true).then(() => {
+        renderModeButtons();
+        renderTabs();
+        renderQuestion();
+      }).catch(() => {});
+    }else if(typeof ghPushOnly === 'function'){
+      // 本地有数据：只往云端推，绝不拉
+      Promise.resolve().then(() => ghPushOnly()).catch(() => {});
+    }
   }
   showToast(toFill ? '已进入填空题练习（记录单独保存）' : '已进入选择题练习', 'ok');
 }
@@ -2042,9 +2171,58 @@ function renderModeButtons(){
     fillMode = saved;
     return n;
   }
-  if(cntC) cntC.textContent = cntOf(false) + ' / ' + QUESTIONS.length;
-  if(cntF) cntF.textContent = cntOf(true) + ' / ' + QUESTIONS.length;
-  if(cntR) cntR.textContent = missList().length + ' 张';
+  const nC = cntOf(false);
+  const nF = cntOf(true);
+  const nR = missList().length;
+  if(cntC) cntC.textContent = nC + ' / ' + QUESTIONS.length;
+  if(cntF) cntF.textContent = nF + ' / ' + QUESTIONS.length;
+  if(cntR) cntR.textContent = nR + ' 张';
+
+  // 紧凑条同步
+  const pillText = document.getElementById('modePillText');
+  const pillCnt = document.getElementById('modePillCnt');
+  const pillRev = document.getElementById('modePillReviewCnt');
+  if(pillText) pillText.textContent = inReview ? '复习中' : (fillMode ? '填空题' : '选择题');
+  if(pillCnt){
+    pillCnt.textContent = inReview
+      ? '点左侧切换模式'
+      : (fillMode ? nF : nC) + '/' + QUESTIONS.length;
+  }
+  if(pillRev) pillRev.textContent = nR;
+}
+
+// 打开 / 关闭左侧抽屉
+function toggleDrawer(force){
+  const open = (force === undefined) ? !document.body.classList.contains('drawerOpen') : !!force;
+  document.body.classList.toggle('drawerOpen', open);
+  if(open) document.body.classList.remove('settingsOpen');
+}
+
+// 打开 / 关闭设置面板
+function toggleSettings(force){
+  const open = (force === undefined) ? !document.body.classList.contains('settingsOpen') : !!force;
+  document.body.classList.toggle('settingsOpen', open);
+  if(open){
+    document.body.classList.remove('drawerOpen');
+    renderSettingsState();
+  }
+}
+
+function renderSettingsState(){
+  const el = document.getElementById('spGhState');
+  if(el){
+    if(typeof ghConfigured === 'function' && ghConfigured()){
+      el.textContent = ghCfg.owner + '/' + ghCfg.repo;
+    }else{
+      el.textContent = '未设置';
+    }
+  }
+  // 手机上不支持「绑定保存文件」，在设置里也一并隐藏
+  const bind = document.getElementById('spBindFile');
+  if(bind){
+    const canBind = (typeof fsSupported === 'function' && fsSupported()) && !diskMode && !fileHandle;
+    bind.style.display = canBind ? '' : 'none';
+  }
 }
 
 (function(){
@@ -2052,9 +2230,44 @@ function renderModeButtons(){
   const bC = document.getElementById('modeChoice');
   const bF = document.getElementById('modeFill');
   const bR = document.getElementById('modeReview');
-  if(bC) bC.onclick = function(){ enterReview(false); switchMode(false); };
-  if(bF) bF.onclick = function(){ enterReview(false); switchMode(true); };
-  if(bR) bR.onclick = function(){ enterReview(true); };
+  // 选完模式就收起抽屉，把空间留给题目
+  if(bC) bC.onclick = function(){ enterReview(false); switchMode(false); toggleDrawer(false); };
+  if(bF) bF.onclick = function(){ enterReview(false); switchMode(true); toggleDrawer(false); };
+  if(bR) bR.onclick = function(){ enterReview(true); toggleDrawer(false); };
+
+  const bDrawer = document.getElementById('btnDrawer');
+  const bClose = document.getElementById('btnDrawerClose');
+  const mask = document.getElementById('drawerMask');
+  if(bDrawer) bDrawer.onclick = function(){ toggleDrawer(); };
+  if(bClose) bClose.onclick = function(){ toggleDrawer(false); };
+  if(mask) mask.onclick = function(){ toggleDrawer(false); };
+
+  // 顶栏：点状态条也能打开抽屉
+  const pill = document.getElementById('modePill');
+  const pillRev = document.getElementById('modePillReview');
+  if(pill) pill.onclick = function(){ toggleDrawer(); };
+
+  // 复习快捷按钮
+  if(pillRev) pillRev.onclick = function(){ enterReview(true); toggleDrawer(false); };
+
+  // ---- 设置面板 ----
+  const bSet = document.getElementById('btnSettings');
+  const bSetClose = document.getElementById('btnSettingsClose');
+  const sMask = document.getElementById('settingsMask');
+  if(bSet) bSet.onclick = function(){ toggleSettings(); };
+  if(bSetClose) bSetClose.onclick = function(){ toggleSettings(false); };
+  if(sMask) sMask.onclick = function(){ toggleSettings(false); };
+
+  const wire = function(id, fn){
+    const b = document.getElementById(id);
+    if(b) b.onclick = function(){ toggleSettings(false); fn(); };
+  };
+  wire('spGhSync',  function(){ document.getElementById('btnGhSync').click(); });
+  wire('spExport',  function(){ exportProgress(); });
+  wire('spImport',  function(){ document.getElementById('fileImport').click(); });
+  wire('spBindFile',function(){ bindFile(); });
+  wire('spReset',   function(){ document.getElementById('btnReset').click(); });
+
   renderModeButtons();
 })();
 
@@ -2622,6 +2835,35 @@ async function ghSync(silent){
     renderGhBtn();
     // 重置流程里不要再触发一轮推送，否则会来回打
     if(!ghWipePending) save();
+  }
+}
+
+// 只推不拉：把本地当前模式的记录写到云端，绝不把云端内容合并回来。
+// 用在"本地已经有数据"的场景，避免云端旧记录把本地覆盖掉。
+async function ghPushOnly(){
+  if(!ghConfigured()) return false;
+  if(ghBusy) return false;
+  ghBusy = true;
+  renderGhBtn();
+  try{
+    const remote = await ghReadRemote();
+    const payload = {
+      app: 'shegong_qb',
+      version: 1,
+      savedAt: new Date().toISOString(),
+      answers: state.answers,
+      cursor: state.cursor
+    };
+    await ghWriteRemote(payload, remote ? remote.sha : null);
+    ghOK = true;
+    return true;
+  }catch(e){
+    ghOK = false;
+    console.warn('推送失败：', e.message);
+    return false;
+  }finally{
+    ghBusy = false;
+    renderGhBtn();
   }
 }
 
