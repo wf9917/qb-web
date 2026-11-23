@@ -219,16 +219,24 @@
     .hrow{gap:6px}
     .title{font-size:14px;white-space:nowrap}
     .title span{display:none}
+    /* 版本号在手机上也要能看见，用来确认跑的是哪一版 */
+    .title #hdrVer{display:inline;font-size:10px}
     .hrow .prog{font-size:11.5px !important;white-space:nowrap}
     .hrow .btn-ghost{padding:6px 7px !important;font-size:12px !important}
     #saveStatus{display:none}
     header{padding:9px 10px;margin:0 -12px 12px}
     /* 防止长内容撑破 */
     .stem,.qhead,.hint,.opt,.card{max-width:100%;overflow-wrap:anywhere;word-break:break-word}
-    .mode-btn{padding:11px 4px}
-    .mode-btn b{font-size:13px;letter-spacing:-.2px}
-    .mode-btn small{font-size:11px}
-    #modeSwitch{gap:7px}
+    .mode-btn{padding:10px 4px;min-height:54px}
+    .mode-btn b{font-size:12.5px;letter-spacing:-.3px}
+    .mode-btn small{font-size:10.5px}
+    /* 手机上三栏太挤：选择题 / 填空题 一行，复习 单独一行 */
+    #modeSwitch{display:grid !important;grid-template-columns:1fr 1fr;gap:7px}
+    #modeFill{grid-column:2}
+    #modeReview{grid-column:1 / -1;flex-direction:row !important;
+      justify-content:center;gap:10px;align-items:center;min-height:44px;padding:9px 12px}
+    #modeReview b{font-size:14px}
+    #modeReview small{font-size:11.5px}
     .card{padding:17px 15px 15px}
     .stem{font-size:16.5px;line-height:1.75}
     .vb{flex:1 1 100%}
@@ -269,7 +277,7 @@
 
   <header>
     <div class="hrow">
-      <div class="title">社工大赛题库练习<span id="hdrSub">400 题</span></div>
+      <div class="title">社工大赛题库练习<span id="hdrSub">400 题</span><span id="hdrVer" style="font-size:10.5px;color:#94a3b8;font-weight:400;margin-left:6px">v2.4</span></div>
       <div class="spacer"></div>
       <span class="prog" id="saveStatus" style="font-size:12px"></span>
       <div class="prog" id="hdrProg">0 / 400</div>
@@ -2193,10 +2201,48 @@ function shuffleDeck(){
   if(be) be.onclick = function(e){ if(e) e.stopPropagation(); enterReview(false); };
 })();
 document.getElementById('btnReset').onclick = function(){
-  if(confirm('确定清除所有作答记录？这会清空全部 400 题的标记，不可恢复。\n\n建议先点「导出进度」存一份。')){
-    state.answers = {}; state.cursor = {}; save(); renderTabs(); renderQuestion(); renderHeader();
-    if(document.getElementById('viewSummary').style.display!=='none'){ renderSummary(); }
+  const modeName = fillMode ? '填空题' : '选择题';
+  const msg = '确定清除' + modeName + '的全部作答记录？\n\n'
+    + '· 会清空全部 400 题在「' + modeName + '」下的标记，不可恢复\n'
+    + '· 云端（GitHub）里的记录也会一起清空\n'
+    + (fillMode ? '' : '· 填空题的记录不受影响\n')
+    + '\n建议先点「导出」存一份。';
+  if(!confirm(msg)) return;
+
+  // 1) 取消排队中的同步，避免把清空前的数据推上去
+  if(typeof ghTimer !== 'undefined' && ghTimer){ clearTimeout(ghTimer); ghTimer = null; }
+
+  // 2) 清空内存和浏览器存储
+  state.answers = {}; state.cursor = {};
+  // 备份键也一起清，否则 loadFromLocalStorageOnly 会从 _bak 把数据恢复回来
+  trySet(lsKey(), JSON.stringify({answers:{}, cursor:{}}));
+  trySet(lsBakKey(), JSON.stringify({answers:{}, cursor:{}}));
+
+  // 3) 云端也清空：先立标记，再触发同步
+  //    save() 内部会调 ghSchedulePush()，标记必须在这之前立好，
+  //    否则那次延迟推送会把云端旧数据合并回来
+  if(typeof ghConfigured === 'function' && ghConfigured()){
+    ghWipePending = true;
   }
+
+  // 4) 写本地（内存已空，存进去的就是空）
+  save();
+
+  // 5) 立刻同步清空云端
+  if(ghWipePending){
+    if(typeof ghBusy !== 'undefined' && ghBusy){
+      // 正在同步：等它结束后会自动重试
+      setTimeout(()=>{ if(ghWipePending) ghSync(false); }, 600);
+    }else{
+      ghSync(false);
+    }
+  }
+
+  // 6) 界面全部刷新
+  renderAll();
+  renderMissEntry();
+  if(typeof renderModeButtons === 'function') renderModeButtons();
+  showToast(modeName + '的作答记录已清除', 'ok');
 };
 document.getElementById('btnExportProg').onclick = exportProgress;
 document.getElementById('btnBindFile').onclick = bindFile;
@@ -2380,6 +2426,9 @@ let ghCfg = { owner:'', repo:'', token:'', path:'progress.json', branch:'' };
 let ghBusy = false;
 let ghOK = false;
 let ghTimer = null;
+// 刚做过「重置」：此时本地是空的，但云端还是旧数据。
+// 这个标记让下一次同步把云端覆盖成空，而不是把旧数据合并回来。
+let ghWipePending = false;
 
 function ghConfigured(){
   return !!(ghCfg.owner && ghCfg.repo && ghCfg.token);
@@ -2506,6 +2555,22 @@ async function ghSync(silent){
     const localCount = answeredCount();
     const remoteCount = Object.keys(remoteAnswers).length;
 
+    // 刚重置过：本地已清空，云端也要清空，绝不能再合并回来
+    if(ghWipePending){
+      const empty = {
+        app: 'shegong_qb',
+        version: 1,
+        savedAt: new Date().toISOString(),
+        answers: {},
+        cursor: {}
+      };
+      await ghWriteRemote(empty, remote ? remote.sha : null);
+      ghWipePending = false;
+      ghOK = true;
+      if(!silent) showToast('已清空（云端也一起清空了）', 'ok');
+      return true;
+    }
+
     // 合并：同一道题本地优先（本地是你刚操作过的，比云端新）
     // 云端独有的题补进来，但绝不把本地已有的记录替换成云端的旧值
     const merged = Object.assign({}, remoteAnswers);
@@ -2555,7 +2620,8 @@ async function ghSync(silent){
   }finally{
     ghBusy = false;
     renderGhBtn();
-    save();
+    // 重置流程里不要再触发一轮推送，否则会来回打
+    if(!ghWipePending) save();
   }
 }
 
@@ -2565,7 +2631,6 @@ function ghSchedulePush(){
   if(ghTimer) clearTimeout(ghTimer);
   ghTimer = setTimeout(()=>{ ghTimer = null; ghSync(true); }, 2500);
 }
-
 // 设置面板
 function ghOpenSettings(){
   const cur = ghConfigured()
