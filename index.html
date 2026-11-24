@@ -160,6 +160,23 @@
   .judge-btn.know:hover{background:#d5f5e1}
   #reviewNav{display:flex;gap:10px;margin-top:12px}
   #reviewNav button{flex:1;font-size:13px}
+  #btnKnownList{flex:0 0 auto !important;padding:8px 12px;color:#15803d;border-color:#bbf0ce;background:#f3fbf6}
+  #btnKnownList span{font-weight:700}
+
+  /* 已会的题列表 */
+  #knownHead{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  #knownHead b{font-size:16px}
+  #knownTotal{font-size:12.5px;color:var(--muted)}
+  #knownHead button{margin-left:auto;padding:6px 12px;font-size:13px}
+  #knownList{display:flex;flex-direction:column;gap:9px}
+  .known-item{display:flex;align-items:flex-start;gap:10px;background:#fff;
+    border:1px solid var(--line);border-radius:12px;padding:12px 13px}
+  .known-item .ki-body{flex:1;min-width:0}
+  .known-item .ki-stem{font-size:14.5px;line-height:1.6;color:var(--ink);word-break:break-word}
+  .known-item .ki-ans{margin-top:5px;font-size:12.5px;color:#15803d;font-weight:600}
+  .known-item .ki-undo{flex:0 0 auto;padding:6px 11px;font-size:12.5px;border-radius:8px;
+    border:1px solid #fbd5d2;background:#fef6f6;color:#b91c1c;cursor:pointer;font-family:inherit}
+  .known-item .ki-undo:hover{background:#fdeceb}
   #reviewEmpty{text-align:center;padding:50px 20px;color:var(--muted)}
   #reviewEmpty .re-ico{font-size:48px;margin-bottom:14px}
   #reviewEmptyMsg{font-size:16px;font-weight:600;color:var(--ink)}
@@ -366,7 +383,7 @@
 
   <header>
     <div class="hrow">
-      <div class="title">社工大赛题库练习<span id="hdrSub">400 题</span><span id="hdrVer" style="font-size:10.5px;color:#94a3b8;font-weight:400;margin-left:6px">v3.1</span></div>
+      <div class="title">社工大赛题库练习<span id="hdrSub">400 题</span><span id="hdrVer" style="font-size:10.5px;color:#94a3b8;font-weight:400;margin-left:6px">v3.4</span></div>
       <div class="spacer"></div>
       <div class="prog" id="hdrProg">0 / 400</div>
       <button class="iconbtn" id="btnSettings" title="设置" aria-label="设置">⚙</button>
@@ -393,7 +410,7 @@
     <button class="sp-item" id="spImport"><i>⤒</i><span>导入进度</span><small>从文件恢复</small></button>
     <button class="sp-item" id="spBindFile"><i>📎</i><span>绑定保存文件</span><small>电脑端</small></button>
     <button class="sp-item danger" id="spReset"><i>↺</i><span>重置进度</span><small>清空当前模式</small></button>
-    <div class="sp-foot">社工大赛题库练习 <b id="spVer">v3.1</b></div>
+    <div class="sp-foot">社工大赛题库练习 <b id="spVer">v3.4</b></div>
   </div>
 
   <!-- ============ 左侧抽屉：模式 + 分类 ============ -->
@@ -525,6 +542,7 @@
 
     <div id="reviewNav">
       <button id="btnFlashShuffle">打乱顺序</button>
+      <button id="btnKnownList">已会 <span id="knownCount">0</span></button>
       <button id="btnFlashExit">返回</button>
     </div>
 
@@ -535,22 +553,55 @@
     </div>
   </div>
 
+  <!-- 已会的题：可以撤回放回卡池 -->
+  <div id="knownView" style="display:none">
+    <div id="knownHead">
+      <b>已经会的题</b>
+      <span id="knownTotal"></span>
+      <button id="btnKnownClose">关闭</button>
+    </div>
+    <div class="sub" style="margin-bottom:10px">点错了？点「撤回」就放回卡池。</div>
+    <div id="knownList"></div>
+    <div id="knownEmpty" style="display:none;text-align:center;padding:40px 20px;color:var(--muted)">
+      还没有判过「会了」的题
+    </div>
+  </div>
+
   <!-- ============ 总结视图 ============ -->
   <div id="viewSummary" style="display:none">
-    <h2>总体情况</h2>
-    <div class="sub" id="sumMeta"></div>
-    <div class="stats" id="sumStats"></div>
+    <!-- 复习练习的总结：只在复习界面点「看总结」时显示 -->
+    <div id="sumForReview">
+      <h2>复习练习 · 总体情况</h2>
+      <div class="sub" id="sumReviewMeta"></div>
+      <div class="stats" id="sumReviewStats"></div>
 
-    <h2>按专题</h2>    <div class="sub">红色越多，越该重点攻。</div>
-    <div id="sumTopics"></div>
+      <h2>复习 · 按专题</h2>
+      <div class="sub">「进度」是该专题里已判「会了」的比例。</div>
+      <div id="sumReviewTopics"></div>
 
-    <h2>不会的题（要重点攻的）</h2>
-    <div class="sub" id="sumMissMeta"></div>
-    <div class="misslist" id="sumMiss"></div>
-    <div style="margin-top:14px;display:flex;gap:9px;flex-wrap:wrap">
-      <button class="btn-primary" id="btnPracticeMiss">专练不会的题</button>
-      <button id="btnExport">导出总结(.txt)</button>
-      <button id="btnBackQuiz">返回做题</button>
+      <div style="margin-top:16px;display:flex;gap:9px;flex-wrap:wrap">
+        <button id="btnBackFromSumR">返回复习</button>
+      </div>
+    </div>
+
+    <!-- 选择题的总结：只在选择题界面点「看总结」时显示 -->
+    <div id="sumForChoice">
+      <h2>选择题 · 总体情况</h2>
+      <div class="sub" id="sumMeta"></div>
+      <div class="stats" id="sumStats"></div>
+
+      <h2>选择题 · 按专题</h2>
+      <div class="sub">红色越多，越该重点攻。</div>
+      <div id="sumTopics"></div>
+
+      <h2>不会的题（要重点攻的）</h2>
+      <div class="sub" id="sumMissMeta"></div>
+      <div class="misslist" id="sumMiss"></div>
+      <div style="margin-top:14px;display:flex;gap:9px;flex-wrap:wrap">
+        <button class="btn-primary" id="btnPracticeMiss">专练不会的题</button>
+        <button id="btnExport">导出总结(.txt)</button>
+        <button id="btnBackQuiz">返回做题</button>
+      </div>
     </div>
   </div>
 
@@ -583,6 +634,8 @@ function lsBakKey(){
 //   复习   -> shegong_review_v1  （reviewState.answers）
 const LS_REVIEW = 'shegong_review_v1';
 let reviewState = { answers: {} };   // { qid: {v:'know'|'dunno'} }
+// 看总结时是从哪个界面进来的：'choice' | 'review'
+let summaryFrom = 'choice';
 
 function reviewKey(){ return LS_REVIEW; }
 function reviewBakKey(){ return LS_REVIEW + '_bak'; }
@@ -1115,9 +1168,10 @@ function renderSaveStatus(){
 
 function exportProgress(){
   const payload = JSON.stringify({
-    app: 'shegong_qb', version: 1,
+    app: 'shegong_qb', version: 2,
     savedAt: new Date().toISOString(),
-    answers: state.answers,
+    answers: state.answers,          // 选择题
+    review: reviewState.answers,     // 复习（单独一栏）
     cursor: state.cursor
   }, null, 1);
   const blob = new Blob([payload], {type:'application/json;charset=utf-8'});
@@ -1140,12 +1194,21 @@ function importProgress(file){
       const o = JSON.parse(reader.result);
       if(!o || !o.answers) throw new Error('文件里没有做题记录');
       const n = Object.keys(o.answers).length;
-      if(!confirm('要导入这份进度吗？共 ' + n + ' 条记录。\n当前页面已有 ' + answeredCount() + ' 条，导入后会覆盖。')) return;
+      const rn = (o.review && typeof o.review === 'object') ? Object.keys(o.review).length : 0;
+      if(!confirm('要导入这份进度吗？\n选择题 ' + n + ' 条，复习 ' + rn + ' 条。\n\n当前已有：选择题 ' + answeredCount()
+        + ' 条，复习 ' + Object.keys(reviewState.answers).length + ' 条。导入后会覆盖。')) return;
       state.answers = o.answers;
       if(o.cursor) state.cursor = o.cursor;
       save();
+      // 复习单独恢复
+      if(rn > 0){
+        reviewState.answers = o.review;
+        saveReview();
+      }
       renderTabs(); renderQuestion(); renderHeader();
-      showToast('已导入 ' + n + ' 条记录', 'ok');
+      if(typeof renderModeButtons === 'function') renderModeButtons();
+      if(reviewMode){ buildDeck(); renderCard(); }
+      showToast('已导入：选择题 ' + n + ' 条，复习 ' + rn + ' 条', 'ok');
     }catch(e){
       showToast('导入失败：' + e.message, 'bad');
     }
@@ -1281,14 +1344,21 @@ function renderHeader(){
 /* ---------- tabs ---------- */
 function renderTabs(){
   const el = document.getElementById('drawerTabs');
-  const missN = missList().length;
+  // 复习里显示的是"这个分类还剩多少张"，选择题里显示"这个分类有多少题"
   const tabs = [
-    {k:'all',    label:'全部 '+QUESTIONS.length},
-    {k:'single', label:'单选题 '+QUESTIONS.filter(q=>q.p==='single').length},
-    {k:'multi',  label:'多选题 '+QUESTIONS.filter(q=>q.p==='multi').length},
-    {k:'miss',   label:'不会的 '+missN}
+    {k:'all',    label:'全部 ' + (reviewMode ? deckSizeForTab('all') : QUESTIONS.length)},
+    {k:'single', label:'单选题 ' + (reviewMode ? deckSizeForTab('single') : QUESTIONS.filter(q=>q.p==='single').length)},
+    {k:'multi',  label:'多选题 ' + (reviewMode ? deckSizeForTab('multi') : QUESTIONS.filter(q=>q.p==='multi').length)}
   ];
-  for(const t of topics()) tabs.push({k:t, label:topicShort(t)});
+  // 「不会的」只对选择题有意义。
+  // 复习里除「会了」以外的题本来都还在卡池，不需要再单独分出一类。
+  if(!reviewMode){
+    tabs.push({k:'miss', label:'不会的 ' + missList().length});
+  }
+  for(const t of topics()){
+    const n = reviewMode ? deckSizeForTab(t) : QUESTIONS.filter(q => q.t === t).length;
+    tabs.push({k:t, label:topicShort(t) + ' ' + n});
+  }
 
   if(el){
     el.innerHTML = '';
@@ -1300,7 +1370,17 @@ function renderTabs(){
         state.tab = t.k;
         navClearsFill = true;
         renderTabs();
-        renderQuestion();
+        if(reviewMode){
+          // 复习里换分类：按新分类重建卡池
+          buildDeck();
+          reviewIdx = 0;
+          document.getElementById('knownView').style.display = 'none';
+          document.getElementById('reviewHead').style.display = '';
+          renderCard();
+          renderModeButtons();
+        }else{
+          renderQuestion();
+        }
         // 选完分类自动收起抽屉，把空间留给题目
         toggleDrawer(false);
       };
@@ -1737,8 +1817,62 @@ function autoSkipAnswered(){
 /* ---------- summary ---------- */
 function renderSummary(){
   document.getElementById('viewQuiz').style.display='none';
+  document.getElementById('viewReview').style.display='none';
   document.getElementById('viewSummary').style.display='block';
 
+  // 按进入时的界面决定显示哪一份总结
+  const forReview = (summaryFrom === 'review');
+  const boxR = document.getElementById('sumForReview');
+  const boxC = document.getElementById('sumForChoice');
+  if(boxR) boxR.style.display = forReview ? 'block' : 'none';
+  if(boxC) boxC.style.display = forReview ? 'none' : 'block';
+
+  if(forReview){
+    renderReviewSummary();
+  }else{
+    renderChoiceSummary();
+  }
+  window.scrollTo({top:0});
+}
+
+function renderReviewSummary(){
+  // ===== 复习练习的统计 =====
+  const rKnow = knownIds().length;
+  const rMiss = Object.keys(reviewState.answers)
+    .filter(k => reviewState.answers[k] && reviewState.answers[k].v === 'dunno').length;
+  const rLeft = QUESTIONS.length - Object.keys(reviewState.answers).length;
+  const rDone = rKnow + rMiss;
+  document.getElementById('sumReviewMeta').textContent =
+    '复习共 ' + QUESTIONS.length + ' 题 · 判过 ' + rDone + ' 题 · 还没练 ' + rLeft + ' 题';
+  document.getElementById('sumReviewStats').innerHTML =
+    '<div class="stat ko"><div class="num">'+rKnow+'</div><div class="lbl">会了</div></div>' +
+    '<div class="stat ba"><div class="num">'+rMiss+'</div><div class="lbl">不会</div></div>' +
+    '<div class="stat"><div class="num">'+rLeft+'</div><div class="lbl">还没练</div></div>' +
+    '<div class="stat"><div class="num">'+Math.round(rDone / QUESTIONS.length * 100)+'%</div><div class="lbl">已练比例</div></div>';
+
+  // 复习按专题
+  const rRows = [];
+  rRows.push('<table><thead><tr><th>专题</th><th class=c>会了</th><th class=c>不会</th><th class=c>还没练</th><th class=c>进度</th></tr></thead><tbody>');
+  for(const t of topics()){
+    const list = QUESTIONS.filter(q => q.t === t);
+    let k = 0, m = 0, left = 0;
+    for(const q of list){
+      const a = reviewState.answers[q.i];
+      if(!a){ left++; continue; }
+      if(a.v === 'know') k++; else m++;
+    }
+    const doneN = k + m;
+    const pct = doneN ? Math.round(k / list.length * 100) : 0;
+    rRows.push('<tr><td>'+escapeHtml(topicShort(t))+'</td>'+
+      '<td class=c>'+k+'</td><td class=c>'+m+'</td><td class=c>'+left+'</td>'+
+      '<td class=c>'+pct+'%</td></tr>');
+  }
+  rRows.push('</tbody></table>');
+  document.getElementById('sumReviewTopics').innerHTML = rRows.join('');
+}
+
+function renderChoiceSummary(){
+  // ===== 选择题的统计 =====
   const total = QUESTIONS.length;
   const done = answeredCount();
   const know = [], dunno = [], unsure = [], skip = [];
@@ -2049,25 +2183,58 @@ function enterReview(on){
   if(reviewMode){
     if(vq) vq.style.display = 'none';
     if(vr) vr.style.display = 'block';
+    if(vs) vs.style.display = 'none';
+    // 每次进来都关掉「已会」列表，从卡片开始
+    const kv = document.getElementById('knownView');
+    if(kv) kv.style.display = 'none';
+    const rh = document.getElementById('reviewHead');
+    if(rh) rh.style.display = '';
     buildDeck();
     reviewIdx = 0;
     renderCard();
     renderModeButtons();
+    renderTabs();
+    updateKnownBadge();
     window.scrollTo({top:0});
   }else{
     if(vr) vr.style.display = 'none';
     if(vq) vq.style.display = 'block';
     renderModeButtons();
+    renderTabs();
   }
 }
 
 // 组卡：全部 400 题都可以过一遍，已经判「会」的移出卡池
 function buildDeck(){
-  // 复习从全部 400 题开始，只看复习自己的记录（与选择题完全无关）
+  // 复习只看复习自己的记录（与选择题完全无关）。
+  // 题目分类对复习同样生效：按 state.tab 筛出要练的题。
   reviewDeck = QUESTIONS.filter(q => {
     const a = reviewState.answers[q.i];
-    return !(a && a.v === 'know');   // 复习里判「会了」的移出卡池
+    if(a && a.v === 'know') return false;   // 复习里判「会了」的移出卡池
+    return matchTab(q, state.tab);
   }).map(q => q.i);
+}
+
+// 某道题是否属于当前分类
+function matchTab(q, tab){
+  if(!tab || tab === 'all') return true;
+  if(tab === 'single') return q.p === 'single';
+  if(tab === 'multi')  return q.p === 'multi';
+  if(tab === 'miss'){
+    // 复习里的「不会的」= 判过「不会」的题
+    const a = reviewState.answers[q.i];
+    return !!(a && a.v === 'dunno');
+  }
+  return q.t === tab;                  // 专题分类
+}
+
+// 复习卡池里可练的题数（按当前分类）
+function deckSizeForTab(tab){
+  return QUESTIONS.filter(q => {
+    const a = reviewState.answers[q.i];
+    if(a && a.v === 'know') return false;
+    return matchTab(q, tab);
+  }).length;
 }
 
 function renderCard(){
@@ -2168,6 +2335,8 @@ function judgeCard(isKnow){
 
   renderCard();
   renderModeButtons();
+  renderTabs();
+  updateKnownBadge();
   // 全部练完
   if(!reviewDeck.length){
     showToast('都练会了 🎉', 'ok', 2600);
@@ -2187,6 +2356,86 @@ function shuffleDeck(){
   reviewIdx = 0;
   renderCard();
   showToast('已打乱顺序', 'ok', 1400);
+}
+
+/* ---------- 已会的题：查看 + 撤回 ---------- */
+// 复习里判过「会了」的题号（按题号排序）
+function knownIds(){
+  return Object.keys(reviewState.answers)
+    .filter(k => reviewState.answers[k] && reviewState.answers[k].v === 'know')
+    .map(Number)
+    .sort((a, b) => a - b);
+}
+
+function renderKnown(){
+  const list = document.getElementById('knownList');
+  const empty = document.getElementById('knownEmpty');
+  const total = document.getElementById('knownTotal');
+  if(!list) return;
+  const ids = knownIds();
+  if(total) total.textContent = '共 ' + ids.length + ' 道';
+
+  list.innerHTML = '';
+  if(!ids.length){
+    if(empty) empty.style.display = 'block';
+    return;
+  }
+  if(empty) empty.style.display = 'none';
+
+  for(const qid of ids){
+    const q = QUESTIONS.find(x => x.i === qid);
+    if(!q) continue;
+    const answers = q.a.split('').sort().map(L => q.o[L.charCodeAt(0) - 65]);
+    const div = document.createElement('div');
+    div.className = 'known-item';
+    div.innerHTML =
+      '<div class="ki-body">' +
+        '<div class="ki-stem">' + escapeHtml(q.s) + '</div>' +
+        '<div class="ki-ans">答案：' + answers.map(a => escapeHtml(a)).join('　|　') + '</div>' +
+      '</div>' +
+      '<button class="ki-undo">撤回</button>';
+    div.querySelector('.ki-undo').onclick = function(){
+      undoKnown(qid);
+    };
+    list.appendChild(div);
+  }
+}
+
+// 撤回：把这道题放回卡池
+function undoKnown(qid){
+  delete reviewState.answers[qid];
+  saveReview();
+  renderKnown();
+  updateKnownBadge();
+  showToast('已放回卡池', 'ok', 1400);
+}
+
+function updateKnownBadge(){
+  const el = document.getElementById('knownCount');
+  if(el) el.textContent = knownIds().length;
+}
+
+// 打开 / 关闭「已会」列表
+function toggleKnown(force){
+  const on = (force === undefined) ? (document.getElementById('knownView').style.display === 'none') : !!force;
+  const kv = document.getElementById('knownView');
+  const card = document.getElementById('flashCard');
+  const nav = document.getElementById('reviewNav');
+  const head = document.getElementById('reviewHead');
+  if(on){
+    renderKnown();
+    kv.style.display = 'block';
+    if(card) card.style.display = 'none';
+    if(nav) nav.style.display = 'none';
+    if(head) head.style.display = 'none';
+  }else{
+    kv.style.display = 'none';
+    if(head) head.style.display = '';
+    if(nav) nav.style.display = '';
+    // 让 renderCard 自己决定卡片显不显示
+    renderCard();
+  }
+  window.scrollTo({top:0, behavior:'smooth'});
 }
 
 // 全部练完后重新开始一轮：只清掉复习里判过的「会」，题重新回到卡池
@@ -2221,6 +2470,12 @@ function restartDeck(){
   if(brs) brs.onclick = restartDeck;
   if(bs) bs.onclick = function(e){ if(e) e.stopPropagation(); shuffleDeck(); };
   if(be) be.onclick = function(e){ if(e) e.stopPropagation(); enterReview(false); };
+
+  // 已会列表
+  const bkList = document.getElementById('btnKnownList');
+  const bkClose = document.getElementById('btnKnownClose');
+  if(bkList) bkList.onclick = function(){ toggleKnown(true); };
+  if(bkClose) bkClose.onclick = function(){ toggleKnown(false); };
 })();
 document.getElementById('btnReset').onclick = function(){
   const msg = '确定清除全部作答记录？\n\n'
@@ -2323,11 +2578,24 @@ document.getElementById('btnPracticeMiss').onclick = function(){
   b.id='fabSummary';
   b.onclick = function(){
     const s = document.getElementById('viewSummary');
-    if(s.style.display==='none'){ renderSummary(); s.style.display='block';
-      document.getElementById('viewQuiz').style.display='none'; b.textContent='返回做题';
+    if(s.style.display==='none'){
+      // 记住是从哪个界面点进来的，决定显示哪一份总结
+      summaryFrom = reviewMode ? 'review' : 'choice';
+      renderSummary();
+      s.style.display='block';
+      document.getElementById('viewQuiz').style.display='none';
+      document.getElementById('viewReview').style.display='none';
+      b.textContent = reviewMode ? '返回复习' : '返回做题';
     }else{
-      s.style.display='none'; document.getElementById('viewQuiz').style.display='block';
-      b.textContent='看总结'; renderTabs(); renderQuestion();
+      s.style.display='none';
+      b.textContent='看总结';
+      if(summaryFrom === 'review'){
+        document.getElementById('viewReview').style.display='block';
+        renderCard(); renderModeButtons(); renderTabs();
+      }else{
+        document.getElementById('viewQuiz').style.display='block';
+        renderTabs(); renderQuestion();
+      }
     }
   };
   document.body.appendChild(b);
