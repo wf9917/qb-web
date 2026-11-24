@@ -366,7 +366,7 @@
 
   <header>
     <div class="hrow">
-      <div class="title">社工大赛题库练习<span id="hdrSub">400 题</span><span id="hdrVer" style="font-size:10.5px;color:#94a3b8;font-weight:400;margin-left:6px">v3.0</span></div>
+      <div class="title">社工大赛题库练习<span id="hdrSub">400 题</span><span id="hdrVer" style="font-size:10.5px;color:#94a3b8;font-weight:400;margin-left:6px">v3.1</span></div>
       <div class="spacer"></div>
       <div class="prog" id="hdrProg">0 / 400</div>
       <button class="iconbtn" id="btnSettings" title="设置" aria-label="设置">⚙</button>
@@ -393,7 +393,7 @@
     <button class="sp-item" id="spImport"><i>⤒</i><span>导入进度</span><small>从文件恢复</small></button>
     <button class="sp-item" id="spBindFile"><i>📎</i><span>绑定保存文件</span><small>电脑端</small></button>
     <button class="sp-item danger" id="spReset"><i>↺</i><span>重置进度</span><small>清空当前模式</small></button>
-    <div class="sp-foot">社工大赛题库练习 <b id="spVer">v3.0</b></div>
+    <div class="sp-foot">社工大赛题库练习 <b id="spVer">v3.1</b></div>
   </div>
 
   <!-- ============ 左侧抽屉：模式 + 分类 ============ -->
@@ -575,6 +575,33 @@ function lsKey(){
 }
 function lsBakKey(){
   return lsKey() + '_bak';
+}
+
+/* ---------- 复习（练习卡）独立存储 ---------- */
+// 复习和选择题是两套完全独立的记录，互不影响：
+//   选择题 -> shegong_qb_v1      （state.answers）
+//   复习   -> shegong_review_v1  （reviewState.answers）
+const LS_REVIEW = 'shegong_review_v1';
+let reviewState = { answers: {} };   // { qid: {v:'know'|'dunno'} }
+
+function reviewKey(){ return LS_REVIEW; }
+function reviewBakKey(){ return LS_REVIEW + '_bak'; }
+
+function loadReview(){
+  let o = null;
+  const raw = tryGet(reviewKey());
+  if(raw){ try{ o = JSON.parse(raw); }catch(e){ o = null; } }
+  if(!o || !o.answers){
+    const bak = tryGet(reviewBakKey());
+    if(bak){ try{ o = JSON.parse(bak); }catch(e){ o = null; } }
+  }
+  reviewState.answers = (o && o.answers) ? o.answers : {};
+}
+
+function saveReview(){
+  const payload = JSON.stringify({answers: reviewState.answers, savedAt: new Date().toISOString()});
+  trySet(reviewKey(), payload);
+  trySet(reviewBakKey(), payload);
 }
 const VERDICT_LABEL = {know:'会', dunno:'不会', unsure:'模棱两可', skip:'未作答'};
 
@@ -1926,8 +1953,9 @@ function renderModeButtons(){
 
 // 复习卡池剩余张数（还没判「会」的题）
 function deckSize(){
+  // 只算复习自己的记录，跟选择题无关
   return QUESTIONS.filter(q => {
-    const a = state.answers[q.i];
+    const a = reviewState.answers[q.i];
     return !(a && a.v === 'know');
   }).length;
 }
@@ -2035,9 +2063,10 @@ function enterReview(on){
 
 // 组卡：全部 400 题都可以过一遍，已经判「会」的移出卡池
 function buildDeck(){
+  // 复习从全部 400 题开始，只看复习自己的记录（与选择题完全无关）
   reviewDeck = QUESTIONS.filter(q => {
-    const a = state.answers[q.i];
-    return !(a && a.v === 'know');   // 「会」的移出卡池
+    const a = reviewState.answers[q.i];
+    return !(a && a.v === 'know');   // 复习里判「会了」的移出卡池
   }).map(q => q.i);
 }
 
@@ -2123,8 +2152,9 @@ function revealAnswer(){
 function judgeCard(isKnow){
   if(!reviewDeck.length) return;
   const qid = reviewDeck[reviewIdx];
-  state.answers[qid] = { v: isKnow ? 'know' : 'dunno', sel: [] };
-  save();
+  // 只写复习自己的记录，绝不碰选择题的 state.answers
+  reviewState.answers[qid] = { v: isKnow ? 'know' : 'dunno' };
+  saveReview();
 
   if(isKnow){
     // 从卡池里移出，当前位置直接指向下一张
@@ -2161,13 +2191,13 @@ function shuffleDeck(){
 
 // 全部练完后重新开始一轮：只清掉复习里判过的「会」，题重新回到卡池
 function restartDeck(){
-  if(!confirm('把复习里判过的「会」全部清空，题重新回到卡池？\n（选择题的成绩记录不受影响）')) return;
-  // 只移除「会」的标记，其余保持
-  for(const k in state.answers){
-    const a = state.answers[k];
-    if(a && a.v === 'know') delete state.answers[k];
+  if(!confirm('把复习里判过的「会」全部清空，题重新回到卡池？\n（选择题的成绩记录完全不受影响）')) return;
+  // 只清复习自己的记录
+  for(const k in reviewState.answers){
+    const a = reviewState.answers[k];
+    if(a && a.v === 'know') delete reviewState.answers[k];
   }
-  save();
+  saveReview();
   buildDeck();
   reviewIdx = 0;
   renderCard();
@@ -2202,11 +2232,13 @@ document.getElementById('btnReset').onclick = function(){
   // 1) 取消排队中的同步，避免把清空前的数据推上去
   if(typeof ghTimer !== 'undefined' && ghTimer){ clearTimeout(ghTimer); ghTimer = null; }
 
-  // 2) 清空内存和浏览器存储
+  // 2) 清空内存和浏览器存储（选择题 + 复习都清）
   state.answers = {}; state.cursor = {};
   // 备份键也一起清，否则 loadFromLocalStorageOnly 会从 _bak 把数据恢复回来
   trySet(lsKey(), JSON.stringify({answers:{}, cursor:{}}));
   trySet(lsBakKey(), JSON.stringify({answers:{}, cursor:{}}));
+  reviewState.answers = {};
+  saveReview();
 
   // 3) 云端也清空：先立标记，再触发同步
   //    save() 内部会调 ghSchedulePush()，标记必须在这之前立好，
@@ -2539,6 +2571,7 @@ async function ghSync(silent){
   try{
     const remote = await ghReadRemote();
     const remoteAnswers = (remote && remote.data && remote.data.answers) ? remote.data.answers : {};
+    const remoteReview = (remote && remote.data && remote.data.review) ? remote.data.review : null;
     const localCount = answeredCount();
     const remoteCount = Object.keys(remoteAnswers).length;
 
@@ -2546,9 +2579,10 @@ async function ghSync(silent){
     if(ghWipePending){
       const empty = {
         app: 'shegong_qb',
-        version: 1,
+        version: 2,
         savedAt: new Date().toISOString(),
         answers: {},
+        review: {},
         cursor: {}
       };
       await ghWriteRemote(empty, remote ? remote.sha : null);
@@ -2556,6 +2590,21 @@ async function ghSync(silent){
       ghOK = true;
       if(!silent) showToast('已清空（云端也一起清空了）', 'ok');
       return true;
+    }
+
+    // 云端复习记录比本地新时补进来（复习和选择题分开处理，互不影响）
+    let reviewChanged = false;
+    if(remoteReview && typeof remoteReview === 'object'){
+      for(const k in remoteReview){
+        if(!reviewState.answers[k] && remoteReview[k]){
+          reviewState.answers[k] = remoteReview[k];
+          reviewChanged = true;
+        }
+      }
+      if(reviewChanged){
+        saveReview();
+        if(reviewMode){ buildDeck(); renderCard(); }
+      }
     }
 
     // 合并：同一道题本地优先（本地是你刚操作过的，比云端新）
@@ -2582,14 +2631,15 @@ async function ghSync(silent){
     }
 
     // 本地有变化（比云端新）才需要写回云端
-    const needWrite = !remote || localChanged || addedFromRemote > 0;
+    const needWrite = !remote || localChanged || addedFromRemote > 0 || reviewChanged;
 
     if(needWrite){
       const payload = {
         app: 'shegong_qb',
-        version: 1,
+        version: 2,
         savedAt: new Date().toISOString(),
         answers: merged,
+        review: reviewState.answers,   // 复习记录单独一栏，和选择题不混
         cursor: state.cursor
       };
       await ghWriteRemote(payload, remote ? remote.sha : null);
@@ -2623,9 +2673,10 @@ async function ghPushOnly(){
     const remote = await ghReadRemote();
     const payload = {
       app: 'shegong_qb',
-      version: 1,
+      version: 2,
       savedAt: new Date().toISOString(),
       answers: state.answers,
+      review: reviewState.answers,   // 复习记录单独一栏
       cursor: state.cursor
     };
     await ghWriteRemote(payload, remote ? remote.sha : null);
@@ -2701,6 +2752,7 @@ document.getElementById('btnGhSync').onclick = function(){
     });
   }catch(e){}
 })();
+loadReview();
 ghLoadCfg();
 </script>
 </body>
