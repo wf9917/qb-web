@@ -148,6 +148,10 @@
   #flashBack{margin-top:20px;padding-top:18px;border-top:1px dashed var(--line)}
   #flashAnswerBox{font-size:16.5px;line-height:1.7;font-weight:600;color:#15803d;
     background:var(--ok-soft);padding:13px 15px;border-radius:10px;word-break:break-word}
+  #flashAnswerBox .fa-label{font-size:12px;color:#4b7a5c;font-weight:600;margin-bottom:7px}
+  #flashAnswerBox .fa-one{font-size:16px;line-height:1.65;padding:3px 0}
+  #flashAnswerBox .fa-one + .fa-one{border-top:1px dashed rgba(21,128,61,.2);margin-top:5px;padding-top:7px}
+  #flashAnswerBox .fa-step b{color:#15803d;margin-right:3px}
   #flashYourAnswer{margin-top:8px;font-size:13px;color:#8a94a3;line-height:1.6;word-break:break-word}
   #judgeBtns{display:flex;gap:10px;margin-top:18px}
   .judge-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
@@ -383,7 +387,7 @@
 
   <header>
     <div class="hrow">
-      <div class="title">社工大赛题库练习<span id="hdrSub">400 题</span><span id="hdrVer" style="font-size:10.5px;color:#94a3b8;font-weight:400;margin-left:6px">v3.4</span></div>
+      <div class="title">社工大赛题库练习<span id="hdrSub">400 题</span><span id="hdrVer" style="font-size:10.5px;color:#94a3b8;font-weight:400;margin-left:6px">v3.5</span></div>
       <div class="spacer"></div>
       <div class="prog" id="hdrProg">0 / 400</div>
       <button class="iconbtn" id="btnSettings" title="设置" aria-label="设置">⚙</button>
@@ -410,7 +414,7 @@
     <button class="sp-item" id="spImport"><i>⤒</i><span>导入进度</span><small>从文件恢复</small></button>
     <button class="sp-item" id="spBindFile"><i>📎</i><span>绑定保存文件</span><small>电脑端</small></button>
     <button class="sp-item danger" id="spReset"><i>↺</i><span>重置进度</span><small>清空当前模式</small></button>
-    <div class="sp-foot">社工大赛题库练习 <b id="spVer">v3.4</b></div>
+    <div class="sp-foot">社工大赛题库练习 <b id="spVer">v3.5</b></div>
   </div>
 
   <!-- ============ 左侧抽屉：模式 + 分类 ============ -->
@@ -2285,6 +2289,51 @@ function renderCard(){
 }
 
 // 看答案：展示正确答案 + 你写的，并让用户自判
+// 选项形如 ①②③④ 的组合（只有代号，没有实际内容）
+function isOrderCodeOption(s){
+  return /^[①②③④⑤⑥⑦⑧]+$/.test(String(s).trim());
+}
+
+// 从题干里的 ①... ②... 列表，按选项给出的顺序拼出完整内容
+function orderByCode(stem, codeStr){
+  const map = {};
+  const re = /([①②③④⑤⑥⑦⑧])\s*([^①②③④⑤⑥⑦⑧]+)/g;
+  let m;
+  while((m = re.exec(stem)) !== null){
+    const k = m[1];
+    let text = m[2].trim();
+    text = text.replace(/[，,、；;。\s]+$/, '');
+    if(text) map[k] = text;
+  }
+  const codes = String(codeStr).trim().split('');
+  const out = [];
+  for(const c of codes){
+    if(map[c]) out.push(map[c]);
+    else return null;      // 有对不上的就不瞎拼
+  }
+  return out.length ? out : null;
+}
+
+// 出示答案时，把"以上都是"这类选项展开成实际内容：
+// 复习卡片上看不到其它选项，光写"以上都是"根本不知道指什么。
+// 返回 { kind:'expand'|'order'|'normal', items:[...], text:'...' }
+function answerDisplayOf(q, letterIdx){
+  const opts = q.o;
+  const raw = opts[letterIdx];
+  // 指代前文的选项
+  if(/^\s*(以上|上述)/.test(raw) && /(都是|全|均|都|正确|对)/.test(raw)){
+    const items = [];
+    for(let i = 0; i < letterIdx; i++) items.push(opts[i]);
+    if(items.length) return { kind:'expand', items };
+  }
+  // 排序题：选项只有 ①②③④ 代号
+  if(isOrderCodeOption(raw)){
+    const ordered = orderByCode(q.s, raw);
+    if(ordered) return { kind:'order', items: ordered };
+  }
+  return { kind:'normal', text: raw };
+}
+
 function revealAnswer(){
   if(!reviewDeck.length) return;
   const qid = reviewDeck[reviewIdx];
@@ -2297,11 +2346,33 @@ function revealAnswer(){
   // 正确答案：按题目原始答案字母取，不受选项打乱影响
   const answers = q.a.split('').sort().map(L => q.o[L.charCodeAt(0) - 65]);
 
+  // 答案区：把「以上都是」展开成实际内容、把排序题展开成正文
   const ansBox = document.getElementById('flashAnswerBox');
   if(ansBox){
-    ansBox.innerHTML = '正确答案' +
-      (answers.length > 1 ? '（共 ' + answers.length + ' 个）' : '') + '：' +
-      answers.map(a => escapeHtml(a)).join('　|　');
+    const idxs = q.a.split('').map(L => L.charCodeAt(0) - 65).sort((a, b) => a - b);
+    const parts = [];
+    let needList = false;
+
+    for(const ix of idxs){
+      const d = answerDisplayOf(q, ix);
+      if(d.kind === 'normal'){
+        parts.push('<div class="fa-one">' + escapeHtml(d.text) + '</div>');
+      }else if(d.kind === 'expand'){
+        needList = true;
+        // 「以上都是」：把它指代的所有选项都列出来
+        d.items.forEach(t => parts.push('<div class="fa-one">' + escapeHtml(t) + '</div>'));
+      }else if(d.kind === 'order'){
+        needList = true;
+        // 排序题：按正确顺序，完整写出每一项内容
+        d.items.forEach((t, n) => parts.push(
+          '<div class="fa-one fa-step"><b>' + (n + 1) + '.</b> ' + escapeHtml(t) + '</div>'));
+      }
+    }
+
+    const manyAns = idxs.length > 1;
+    ansBox.innerHTML =
+      '<div class="fa-label">正确答案' + (manyAns ? '（共 ' + idxs.length + ' 个）' : '') + '</div>' +
+      parts.join('');
   }
   const yourEl = document.getElementById('flashYourAnswer');
   if(yourEl) yourEl.textContent = mine ? ('你写的：' + mine) : '（你没写，直接看的答案）';
